@@ -1,5 +1,6 @@
 package com.hitesh.friends.repository
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import com.hitesh.friends.api.UserService
 import com.hitesh.friends.database.LocalUser
@@ -14,6 +15,7 @@ return localUserDao.getAllUsers().isNotEmpty()
    }
 
    suspend fun createUser(username: String, firstName: String, lastName: String, email: String, password: String): Status {
+       Log.d("ggtr", "$firstName, $lastName, $username, $email $password")
       val status =   userService.createUser( username, firstName, lastName, email, password)?.body() ?: Status(false)
       if(status.success) {
      localUserDao.insertLocalUser(LocalUser(34, username = username))
@@ -24,6 +26,10 @@ return localUserDao.getAllUsers().isNotEmpty()
    suspend fun getUser(): User {
      return  userService.getUser(localUserDao.getAllUsers().get(0).username)?.body()!!
    }
+
+    suspend fun updateUser(username: String, firstName: String, lastName: String): Status {
+        return userService.updateUser(username, firstName, lastName).body()!!
+    }
 
 
 }

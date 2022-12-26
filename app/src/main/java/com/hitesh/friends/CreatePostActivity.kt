@@ -10,8 +10,12 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.gestures.rememberScrollableState
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
@@ -24,7 +28,14 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.hitesh.friends.api.ImageUrlService
+import com.hitesh.friends.api.PostsService
+import com.hitesh.friends.api.RetrofitHelper
+import com.hitesh.friends.database.LocalUserDatabase
+import com.hitesh.friends.repository.PostsRepository
 import com.hitesh.friends.viewModels.CreatePostViewModel
+import com.hitesh.friends.viewModels.CreatePostViewModelFactory
+import retrofit2.create
 
 
 class CreatePostActivity : AppCompatActivity() {
@@ -41,7 +52,11 @@ class CreatePostActivity : AppCompatActivity() {
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        createPostViewModel = ViewModelProvider(this).get(CreatePostViewModel::class.java)
+        val postsService = RetrofitHelper.getInstance().create(PostsService::class.java)
+        val imageUrlService = RetrofitHelper.getInstance2().create(ImageUrlService::class.java)
+        val localUserDao = LocalUserDatabase.getDatabase(applicationContext).localUserDao()
+        val repo = PostsRepository(postsService, localUserDao, imageUrlService)
+        createPostViewModel = ViewModelProvider(this, CreatePostViewModelFactory(repository = repo, application)).get(CreatePostViewModel::class.java)
         Log.d(tag, intent.getStringExtra("post_content") ?: "")
 
         setContent {
@@ -61,7 +76,7 @@ class CreatePostActivity : AppCompatActivity() {
         .toString() else ""
 
         })
-        Column{
+        Column(Modifier.verticalScroll(rememberScrollState())){
         TextField(
             modifier = Modifier.height(200.dp),
             value = postContent.value ?: "",

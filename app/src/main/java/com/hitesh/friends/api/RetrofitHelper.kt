@@ -5,8 +5,8 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitHelper {
-    val base_url = "https://friends-api-xi.vercel.app"
-    val base_url2 = "https://api.imgbb.com/1/upload"
+    val base_url = "https://friends-api-xi.vercel.app/"
+    val base_url2 = "https://api.imgbb.com/"
     fun getInstance(): Retrofit {
         return Retrofit.Builder().baseUrl(base_url).addConverterFactory(GsonConverterFactory.create()).build()
     }

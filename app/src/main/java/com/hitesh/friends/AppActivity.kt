@@ -18,9 +18,18 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
+import com.hitesh.friends.api.ImageUrlService
+import com.hitesh.friends.api.PostsService
+import com.hitesh.friends.api.RetrofitHelper
+import com.hitesh.friends.api.UserService
+import com.hitesh.friends.database.LocalUserDatabase
 import com.hitesh.friends.models.Posts
+import com.hitesh.friends.repository.PostsRepository
+import com.hitesh.friends.repository.UserRepository
 import com.hitesh.friends.viewModels.FeedViewModel
+import com.hitesh.friends.viewModels.FeedViewModelFactory
 import com.hitesh.friends.viewModels.UserProfileViewModel
+import com.hitesh.friends.viewModels.UserProfileViewModelFactory
 import kotlinx.coroutines.launch
 
 class AppActivity : AppCompatActivity() {
@@ -28,8 +37,14 @@ class AppActivity : AppCompatActivity() {
     lateinit var userProfileViewModel: UserProfileViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        feedViewModel = ViewModelProvider(this).get(FeedViewModel::class.java)
-        userProfileViewModel = ViewModelProvider(this).get(UserProfileViewModel::class.java)
+        var localUserDao = LocalUserDatabase.getDatabase(applicationContext).localUserDao()
+        var imageUrlService = RetrofitHelper.getInstance2().create(ImageUrlService::class.java)
+        var postsService = RetrofitHelper.getInstance().create(PostsService::class.java)
+        var postsRepository = PostsRepository(postsService, localUserDao, imageUrlService)
+         var userRepository: UserRepository
+        userRepository = UserRepository(userService = RetrofitHelper.getInstance().create(UserService::class.java), localUserDao  )
+        feedViewModel = ViewModelProvider(this, FeedViewModelFactory(postsRepository)).get(FeedViewModel::class.java)
+        userProfileViewModel = ViewModelProvider(this, UserProfileViewModelFactory(userRepository)).get(UserProfileViewModel::class.java)
        setContent {
            var scaffoldState = rememberScaffoldState()
            var scope = rememberCoroutineScope()
@@ -99,7 +114,7 @@ class AppActivity : AppCompatActivity() {
                         content = {
                            Column {
                               Text(posts.value!![it].username)
-                               Text(posts.value!![it].postCaption)
+                               Text(posts.value!![it].postContent)
                                AsyncImage(model = posts.value!![it].postImage, contentDescription = null)
                            }
 

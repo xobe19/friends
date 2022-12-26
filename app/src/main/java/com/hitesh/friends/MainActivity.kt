@@ -26,7 +26,12 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.hitesh.friends.api.RetrofitHelper
+import com.hitesh.friends.api.UserService
+import com.hitesh.friends.database.LocalUserDatabase
+import com.hitesh.friends.repository.UserRepository
 import com.hitesh.friends.viewModels.LoginViewModel
+import com.hitesh.friends.viewModels.LoginViewModelFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlin.math.log
@@ -36,7 +41,9 @@ class LoginActivity : ComponentActivity() {
     lateinit var navController: NavHostController
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        loginViewModel = ViewModelProvider(this).get(LoginViewModel::class.java)
+
+        val userRepository = UserRepository(RetrofitHelper.getInstance().create(UserService::class.java), LocalUserDatabase.getDatabase(applicationContext).localUserDao())
+        loginViewModel = ViewModelProvider(this, LoginViewModelFactory(userRepository)).get(LoginViewModel::class.java)
 
         setContent {
             navController = rememberNavController()
